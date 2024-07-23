@@ -5,7 +5,6 @@ import {
   ConflictException,
   BadRequestException,
   forwardRef,
-  NotAcceptableException,
 } from '@nestjs/common';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { AdminService } from '../admin/admin.service';
@@ -25,14 +24,14 @@ export class AuthService {
     const [admin] = await this.adminService.find(email);
 
     if (!admin) {
-      throw new NotAcceptableException('Could not find the user.');
+      throw new BadRequestException('User or password is not correct');
     }
 
     const [salt, storedHash] = admin.password.split('.');
     const newHash = (await scrypt(password, salt, 32)) as Buffer;
 
     if (storedHash !== newHash.toString('hex')) {
-      return null;
+      throw new BadRequestException('User or password is not correct');
     }
 
     return admin;
@@ -61,25 +60,6 @@ export class AuthService {
     const admin = await this.adminService.create(email, hashedPassword);
 
     // Return the admin
-    return admin;
-  }
-
-  async signin(email: string, password: string) {
-    // Check if the user exists
-    const [admin] = await this.adminService.find(email);
-    if (!admin) {
-      throw new BadRequestException('User or password is not correct');
-    }
-
-    // Hash the password and compare it with the password in the database
-    const [salt, storedHash] = admin.password.split('.');
-    const newHash = (await scrypt(password, salt, 32)) as Buffer;
-
-    if (storedHash !== newHash.toString('hex')) {
-      throw new BadRequestException('User or password is not correct');
-    }
-
-    // If credentials are correct, signin the admin
     return admin;
   }
 }

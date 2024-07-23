@@ -31,7 +31,7 @@ import { Admin } from './auth/auth.entity';
         synchronize: process.env.NODE_ENV !== 'development' ? false : true,
         ssl:
           config.get<string>('NODE_ENV') !== 'development'
-            ? { rejectUnauthorized: false }
+            ? { rejectUnauthorized: true }
             : false,
       }),
     }),

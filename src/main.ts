@@ -13,7 +13,10 @@ async function bootstrap() {
       secret: process.env.SESSION_KEY,
       resave: false,
       saveUninitialized: false,
-      cookie: { secure: process.env.NODE_ENV === 'production' ? true : false },
+      cookie: {
+        secure: process.env.NODE_ENV === 'production' ? true : false,
+        maxAge: 24 * 60 * 60 * 1000,
+      },
     }),
   );
 
