@@ -7,11 +7,13 @@ import {
   Response,
   HttpCode,
   Session,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateAdminDto } from './dtos/createAdmin.dto';
 import { SigninAdminDto } from './dtos/signinUser.dto';
 import { AdminDto } from './dtos/admin.dto';
+import { UpdatePasswordDto } from './dtos/updatePassword.dto';
 import { AuthService } from './auth.service';
 import { Serialize } from '../interceptors/serialize.interceptor';
 
@@ -24,7 +26,7 @@ export class AuthController {
   @Post('/signup')
   //   @Session() session: any
   async createAdmin(@Body() body: CreateAdminDto) {
-    const admin = this.authService.signup(
+    const admin = await this.authService.signup(
       body.email,
       body.password,
       body.confirmPassword,
@@ -56,6 +58,31 @@ export class AuthController {
     res.status(200).json({
       status: 'success',
       message: 'Logged out successfully',
+    });
+  }
+
+  @Post('/update-password')
+  async updatePassword(
+    @Body() body: UpdatePasswordDto,
+    @Request() req: any,
+    @Response() res: any,
+  ) {
+    const userId = req.session.userId;
+
+    if (!userId) {
+      throw new UnauthorizedException();
+    }
+
+    await this.authService.updateAdminPassword(
+      userId,
+      body.currentPassword,
+      body.newPassword,
+      body.confirmPassword,
+    );
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Password changed successfully',
     });
   }
 }

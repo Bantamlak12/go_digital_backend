@@ -16,4 +16,12 @@ export class AdminService {
   async find(email: string): Promise<Admin[]> {
     return await this.repo.find({ where: { email } });
   }
+
+  async findById(id: string): Promise<Admin> {
+    return await this.repo.findOne({ where: { id } });
+  }
+
+  async updatePassword(id: string, password: string): Promise<void> {
+    await this.repo.update({ id }, { password });
+  }
 }
