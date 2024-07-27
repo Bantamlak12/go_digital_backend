@@ -9,6 +9,7 @@ import {
   HttpStatus,
   UnauthorizedException,
   Param,
+  Get,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
@@ -29,8 +30,8 @@ export class AuthController {
 
   // Create administrator
   @Post('/signup')
-  @ApiOperation({ summary: 'An API use to create an account.' })
-  @ApiResponse({ status: 201, description: 'Successful registration message.' })
+  @ApiOperation({ summary: 'This endpoint is used to create an account.' })
+  @ApiResponse({ status: 201, description: 'A success registration message.' })
   //   @Session() session: any
   async createAdmin(@Body() body: CreateAdminDto, @Response() res: any) {
     await this.authService.signup(
@@ -45,12 +46,21 @@ export class AuthController {
     });
   }
 
+  @Get('/signin')
+  @ApiOperation({
+    summary: 'This end point is used to get the fronend login page.',
+  })
+  @ApiResponse({ status: 200 })
+  getSignin() {
+    return 'Sign in page';
+  }
+
   @UseGuards(AuthGuard('local'))
   @Post('/signin')
   @ApiOperation({
-    summary: 'An API use to sign in to the dashboard.',
+    summary: 'This endpoint is used to sign in to the dashboard.',
   })
-  @ApiResponse({ status: 200, description: 'Successfull sign in message.' })
+  @ApiResponse({ status: 200, description: 'A success sign in message.' })
   async signinUser(
     @Body() body: SigninAdminDto,
     @Request() req: any,
@@ -68,9 +78,9 @@ export class AuthController {
 
   @Post('/signout')
   @ApiOperation({
-    summary: 'An API use to end the current session (sign out).',
+    summary: 'This endpoint is used to end the current session (sign out).',
   })
-  @ApiResponse({ status: 200, description: 'Successfull sign out message.' })
+  @ApiResponse({ status: 200, description: 'A success sign out message.' })
   signoutUser(@Request() req: any, @Response() res: any) {
     // Check if the user is logged in
     if (!req.session || !req.session.userId) {
@@ -95,10 +105,10 @@ export class AuthController {
   }
 
   @Post('/change-password')
-  @ApiOperation({ summary: 'An API use to change a password.' })
+  @ApiOperation({ summary: 'This endpoint is used to change a password.' })
   @ApiResponse({
     status: 200,
-    description: "Successful 'password Changed' message",
+    description: 'A success password Changed message',
   })
   async updatePassword(
     @Body() body: UpdatePasswordDto,
