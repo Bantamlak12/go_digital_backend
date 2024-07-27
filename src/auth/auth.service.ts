@@ -5,9 +5,14 @@ import {
   ConflictException,
   BadRequestException,
   forwardRef,
+  NotFoundException,
+  InternalServerErrorException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
-import { randomBytes, scrypt as _scrypt } from 'crypto';
+import { randomBytes, scrypt as _scrypt, createHash } from 'crypto';
 import { AdminService } from '../admin/admin.service';
+import { CustomeMailerService } from 'src/mailer/mailer.service';
+import { generatePasswordResetEmail } from 'src/mailer/templates/mailerTemplate';
 import { promisify } from 'util';
 
 // Change the _scrypt function to promise-based to use await
@@ -18,6 +23,7 @@ export class AuthService {
   constructor(
     @Inject(forwardRef(() => AdminService))
     private adminService: AdminService,
+    private mailerService: CustomeMailerService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -37,6 +43,21 @@ export class AuthService {
     return admin;
   }
 
+  async hashPassword(
+    password: string,
+    confirmPassword: string,
+  ): Promise<string> {
+    if (password !== confirmPassword) {
+      throw new ConflictException('Passwords do not match.');
+    }
+
+    const salt = randomBytes(8).toString('hex');
+    const hash = (await scrypt(password, salt, 32)) as Buffer;
+    const hashedPassword = `${salt}.${hash.toString('hex')}`;
+
+    return hashedPassword;
+  }
+
   async signup(email: string, password: string, confirmPassword: string) {
     // Check if the email is already registered
     const admins = await this.adminService.find(email);
@@ -47,14 +68,7 @@ export class AuthService {
     }
 
     // Check if the password and confirmPassword do match
-    if (password !== confirmPassword) {
-      throw new UnauthorizedException('Passwords do not match');
-    }
-
-    // Generate the salt and hash the password
-    const salt = randomBytes(8).toString('hex');
-    const hash = (await scrypt(password, salt, 32)) as Buffer;
-    const hashedPassword = `${salt}.${hash.toString('hex')}`;
+    const hashedPassword = await this.hashPassword(password, confirmPassword);
 
     // Create the user and save to database
     const admin = await this.adminService.create(email, hashedPassword);
@@ -84,11 +98,6 @@ export class AuthService {
       throw new BadRequestException('Current password is not correct');
     }
 
-    // Compare the newPassword and confirmPassword
-    if (newPassword !== confirmPassword) {
-      throw new ConflictException('Passwords do not match.');
-    }
-
     // The new password should not be the same as the older password
     if (currentPassword === newPassword) {
       throw new BadRequestException(
@@ -96,11 +105,70 @@ export class AuthService {
       );
     }
 
-    // Hash the password and save to database
-    const newSalt = randomBytes(8).toString('hex');
-    const newHash = (await scrypt(newPassword, newSalt, 32)) as Buffer;
-    const hashedPassword = `${newSalt}.${newHash.toString('hex')}`;
+    const hashedPassword = await this.hashPassword(
+      newPassword,
+      confirmPassword,
+    );
 
     await this.adminService.updatePassword(userId, hashedPassword);
+  }
+
+  async forgotPassword(req: any, email: string) {
+    const [admin] = await this.adminService.find(email);
+    if (!admin) {
+      throw new NotFoundException('The email do not exists.');
+    }
+
+    const token = randomBytes(32).toString('hex');
+    const hashedToken = createHash('sha256').update(token).digest('hex');
+    const expiryTime = new Date();
+    expiryTime.setHours(expiryTime.getHours() + 1);
+
+    const resetToken = await this.adminService.savePasswordResetToken(
+      admin,
+      hashedToken,
+      expiryTime,
+    );
+
+    if (!resetToken) {
+      throw new InternalServerErrorException(
+        'Failed to save password reset token.',
+      );
+    }
+
+    const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${token}`;
+
+    const emailBody = generatePasswordResetEmail(resetUrl);
+    const subject = 'Password Reset';
+
+    try {
+      await this.mailerService.sendEmail(admin.email, subject, emailBody);
+    } catch (error) {
+      throw new ServiceUnavailableException(
+        'Failed to send email. Please try again later',
+      );
+    }
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    confirmPassword: string,
+  ) {
+    const hashedToken = createHash('sha256').update(token).digest('hex');
+    const resetToken = await this.adminService.findAdminByToken(hashedToken);
+
+    if (!resetToken || resetToken.expiryTime < new Date()) {
+      throw new BadRequestException('Token is invalid or has expired.');
+    }
+
+    const hashedPassword = await this.hashPassword(
+      newPassword,
+      confirmPassword,
+    );
+
+    await this.adminService.updatePassword(resetToken.admin.id, hashedPassword);
+    await this.adminService.clearPasswordResetToken(resetToken.id);
+    await this.adminService.cleanupExpiredTokens();
   }
 }
