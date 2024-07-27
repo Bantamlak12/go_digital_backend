@@ -11,6 +11,7 @@ import {
   Param,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { CreateAdminDto } from './dtos/createAdmin.dto';
 import { SigninAdminDto } from './dtos/signinUser.dto';
 import { AdminDto } from './dtos/admin.dto';
@@ -18,8 +19,9 @@ import { UpdatePasswordDto } from './dtos/updatePassword.dto';
 import { ForgotPasswordDto } from './dtos/forgotPassword.dto';
 import { ResetPasswordDto } from './dtos/resetPassword.dto';
 import { AuthService } from './auth.service';
-import { Serialize } from '../interceptors/serialize.interceptor';
+import { Serialize } from '../shared/interceptors/serialize.interceptor';
 
+@ApiTags('auth')
 @Controller('auth')
 @Serialize(AdminDto)
 export class AuthController {
@@ -27,6 +29,8 @@ export class AuthController {
 
   // Create administrator
   @Post('/signup')
+  @ApiOperation({ summary: 'An API use to create an account.' })
+  @ApiResponse({ status: 201, description: 'Successful registration message.' })
   //   @Session() session: any
   async createAdmin(@Body() body: CreateAdminDto, @Response() res: any) {
     await this.authService.signup(
@@ -35,7 +39,7 @@ export class AuthController {
       body.confirmPassword,
     );
 
-    return res.status(HttpStatus.OK).json({
+    return res.status(HttpStatus.CREATED).json({
       status: 'success',
       message: 'You have successfully registered.',
     });
@@ -43,6 +47,10 @@ export class AuthController {
 
   @UseGuards(AuthGuard('local'))
   @Post('/signin')
+  @ApiOperation({
+    summary: 'An API use to sign in to the dashboard.',
+  })
+  @ApiResponse({ status: 200, description: 'Successfull sign in message.' })
   async signinUser(
     @Body() body: SigninAdminDto,
     @Request() req: any,
@@ -59,12 +67,16 @@ export class AuthController {
   }
 
   @Post('/signout')
+  @ApiOperation({
+    summary: 'An API use to end the current session (sign out).',
+  })
+  @ApiResponse({ status: 200, description: 'Successfull sign out message.' })
   signoutUser(@Request() req: any, @Response() res: any) {
     // Check if the user is logged in
     if (!req.session || !req.session.userId) {
       return res.status(HttpStatus.UNAUTHORIZED).json({
         status: 'fail',
-        message: 'You are not logged in',
+        message: 'You are not signed in',
       });
     }
 
@@ -83,6 +95,11 @@ export class AuthController {
   }
 
   @Post('/change-password')
+  @ApiOperation({ summary: 'An API use to change a password.' })
+  @ApiResponse({
+    status: 200,
+    description: "Successful 'password Changed' message",
+  })
   async updatePassword(
     @Body() body: UpdatePasswordDto,
     @Request() req: any,
@@ -109,6 +126,20 @@ export class AuthController {
 
   // This route will generate a random reset token and sends it to the user
   @Post('/forgot-password')
+  @ApiOperation({
+    summary: `This end point is used to request a password reset link.\n
+    Frontend Implementation:
+    1) Make sure you have a page that handles the route /reset-password/:token. 
+    This page should prompt the to enter the new password and confirm it.
+    2) Send a POST request to /reset-password/:token with the new password and 
+    confirmation.
+    `,
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'A success message indicating that the reset link has been sent to your provided email address.',
+  })
   async forgotPassword(
     @Body() body: ForgotPasswordDto,
     @Request() req: any,
@@ -124,6 +155,19 @@ export class AuthController {
 
   // This route will reset the user password
   @Post('/reset-password/:token')
+  @ApiOperation({
+    summary:
+      'This endpoint is used to reset your password if the token sent to your email is still valid.',
+  })
+  @ApiParam({
+    name: 'token',
+    description: 'A unique token sent to your email for password reset.',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'A success message indicating that the password has been successfully reset.',
+  })
   async resetPassword(
     @Body() body: ResetPasswordDto,
     @Param('token') token: string,

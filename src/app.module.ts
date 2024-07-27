@@ -9,12 +9,10 @@ import { AuthModule } from './auth/auth.module';
 import { BlogModule } from './blog/blog.module';
 import { BookingModule } from './booking/booking.module';
 import { ContactModule } from './contact/contact.module';
-import { ServicesModule } from './services/services.module';
-import { TestimonialsModule } from './testimonials/testimonials.module';
 import { VacanciesModule } from './vacancies/vacancies.module';
 import { Admins } from './auth/entities/auth.entity';
 import { PasswordResetTokens } from 'src/auth/entities/password-reset-token.entity';
-import { MailerConfigModule } from './mailer/mailer.module';
+import { MailerConfigModule } from './shared/mailer/mailer.module';
 
 @Module({
   imports: [
@@ -45,8 +43,6 @@ import { MailerConfigModule } from './mailer/mailer.module';
     BlogModule,
     BookingModule,
     ContactModule,
-    ServicesModule,
-    TestimonialsModule,
     VacanciesModule,
     MailerConfigModule,
   ],

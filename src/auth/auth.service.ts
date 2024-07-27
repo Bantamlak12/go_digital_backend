@@ -11,8 +11,8 @@ import {
 } from '@nestjs/common';
 import { randomBytes, scrypt as _scrypt, createHash } from 'crypto';
 import { AdminService } from '../admin/admin.service';
-import { CustomeMailerService } from 'src/mailer/mailer.service';
-import { generatePasswordResetEmail } from 'src/mailer/templates/mailerTemplate';
+import { CustomeMailerService } from 'src/shared/mailer/mailer.service';
+import { generatePasswordResetEmail } from 'src/shared/mailer/templates/mailerTemplate';
 import { promisify } from 'util';
 
 // Change the _scrypt function to promise-based to use await

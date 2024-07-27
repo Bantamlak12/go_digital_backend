@@ -4,8 +4,8 @@ import { LocalStrategy } from './local.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { AdminModule } from '../admin/admin.module';
 import { AuthController } from './auth.controller';
-import { MailerConfigModule } from 'src/mailer/mailer.module';
-import { CustomeMailerService } from 'src/mailer/mailer.service';
+import { MailerConfigModule } from 'src/shared/mailer/mailer.module';
+import { CustomeMailerService } from 'src/shared/mailer/mailer.service';
 
 @Module({
   imports: [PassportModule, forwardRef(() => AdminModule), MailerConfigModule],
