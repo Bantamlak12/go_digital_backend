@@ -5,7 +5,7 @@ export class ResetPasswordDto {
   @IsString()
   @MinLength(8)
   @ApiProperty({
-    example: '12345678',
+    example: 'password',
     description: 'The admins new password',
   })
   newPassword: string;
@@ -13,7 +13,7 @@ export class ResetPasswordDto {
   @IsString()
   @MinLength(8)
   @ApiProperty({
-    example: '12345678',
+    example: 'password',
     description: 'Confirm the password to reset the password.',
   })
   confirmPassword: string;

@@ -10,6 +10,8 @@ import {
   UnauthorizedException,
   Param,
   Get,
+  Patch,
+  Delete,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
@@ -19,8 +21,10 @@ import { AdminDto } from './dtos/admin.dto';
 import { UpdatePasswordDto } from './dtos/updatePassword.dto';
 import { ForgotPasswordDto } from './dtos/forgotPassword.dto';
 import { ResetPasswordDto } from './dtos/resetPassword.dto';
+import { RestoreAccountDto } from './dtos/restoreAccount.dto';
 import { AuthService } from './auth.service';
 import { Serialize } from '../shared/interceptors/serialize.interceptor';
+import { Protect, DeletedUser } from './protect.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -28,13 +32,22 @@ import { Serialize } from '../shared/interceptors/serialize.interceptor';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  capitalizeString(input: any): string {
+    return input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
+  }
+
   // Create administrator
   @Post('/signup')
   @ApiOperation({ summary: 'This endpoint is used to create an account.' })
   @ApiResponse({ status: 201, description: 'A success registration message.' })
   //   @Session() session: any
   async createAdmin(@Body() body: CreateAdminDto, @Response() res: any) {
+    const firstName = this.capitalizeString(body.firstName);
+    const lastName = this.capitalizeString(body.lastName);
+
     await this.authService.signup(
+      firstName,
+      lastName,
       body.email,
       body.password,
       body.confirmPassword,
@@ -76,6 +89,7 @@ export class AuthController {
     });
   }
 
+  @UseGuards(Protect)
   @Post('/signout')
   @ApiOperation({
     summary: 'This endpoint is used to end the current session (sign out).',
@@ -104,7 +118,8 @@ export class AuthController {
     });
   }
 
-  @Post('/change-password')
+  @UseGuards(Protect)
+  @Patch('/change-password')
   @ApiOperation({ summary: 'This endpoint is used to change a password.' })
   @ApiResponse({
     status: 200,
@@ -135,6 +150,7 @@ export class AuthController {
   }
 
   // This route will generate a random reset token and sends it to the user
+  @UseGuards(Protect)
   @Post('/forgot-password')
   @ApiOperation({
     summary: `This end point is used to request a password reset link.\n
@@ -164,7 +180,8 @@ export class AuthController {
   }
 
   // This route will reset the user password
-  @Post('/reset-password/:token')
+  @UseGuards(Protect)
+  @Patch('/reset-password/:token')
   @ApiOperation({
     summary:
       'This endpoint is used to reset your password if the token sent to your email is still valid.',
@@ -192,6 +209,59 @@ export class AuthController {
     return res.status(HttpStatus.OK).json({
       status: 'success',
       message: 'You have successfully reset your pasword.',
+    });
+  }
+
+  @UseGuards(Protect)
+  @Delete('/delete-account')
+  @ApiOperation({
+    summary: `This endpoint is used to delete the account.
+    Frontend Implementation:
+    1) Make sure you have a page that handles the route /restore-account/:token. 
+    This page should prompt the to enter the user's old password. If the user forgot
+    the password, there is no way to restore the account.
+    2) Send a POST request to /restore-account/:token with the old password
+    `,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'A success message indicating that the account is deleted.',
+  })
+  async deleteAccount(@Request() req: any, @Response() res: any) {
+    await this.authService.deleteAccount(req, req.session.userId);
+    req.session.destroy();
+    res.clearCookie('connect.sid');
+
+    return res.status(HttpStatus.OK).json({
+      status: 'success',
+      message: 'You have successfully deleted your account.',
+    });
+  }
+
+  @UseGuards(DeletedUser)
+  @Post('/restore-account/:token')
+  @ApiOperation({
+    summary: 'This endpoint is used to restore deleted account.',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'A success message indicating that the deleted account is restorted.',
+  })
+  async restoreDeletedAccount(
+    @Body() body: RestoreAccountDto,
+    @Param('token') token: string,
+    @Request() req: any,
+    @Response() res: any,
+    @Session() session: any,
+  ) {
+    const userId = await this.authService.restoreAccount(token, body.password);
+    session.userId = userId;
+
+    // return req.user;
+    return res.status(HttpStatus.OK).json({
+      status: 'success',
+      message: 'You have successfully restorted your account.',
     });
   }
 }

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AdminModule } from './admin/admin.module';
@@ -10,8 +9,9 @@ import { BlogModule } from './blog/blog.module';
 import { BookingModule } from './booking/booking.module';
 import { ContactModule } from './contact/contact.module';
 import { VacanciesModule } from './vacancies/vacancies.module';
-import { Admins } from './auth/entities/auth.entity';
-import { PasswordResetTokens } from 'src/auth/entities/password-reset-token.entity';
+import { Admins } from './auth/entities/admin.entity';
+import { ResetTokens } from 'src/auth/entities/password-reset-token.entity';
+import { RecoveryTokens } from 'src/auth/entities/account-recovery-token.entity';
 import { MailerConfigModule } from './shared/mailer/mailer.module';
 
 @Module({
@@ -29,7 +29,7 @@ import { MailerConfigModule } from './shared/mailer/mailer.module';
         username: config.get<string>('DATABASE_USERNAME'),
         password: config.get<string>('DATABASE_PASSWORD'),
         database: config.get<string>('DATABASE_NAME'),
-        entities: [Admins, PasswordResetTokens],
+        entities: [Admins, ResetTokens, RecoveryTokens],
         synchronize: process.env.NODE_ENV !== 'development' ? false : true,
         ssl:
           config.get<string>('NODE_ENV') !== 'development'
@@ -37,7 +37,6 @@ import { MailerConfigModule } from './shared/mailer/mailer.module';
             : false,
       }),
     }),
-    ScheduleModule.forRoot(),
     AdminModule,
     AuthModule,
     BlogModule,

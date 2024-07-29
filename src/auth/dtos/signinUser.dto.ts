@@ -11,7 +11,7 @@ export class SigninAdminDto {
 
   @IsString()
   @ApiProperty({
-    example: 'df784y43rS',
+    example: '12345678',
     description: 'Password of the admin',
   })
   password: string;

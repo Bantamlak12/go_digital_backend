@@ -8,7 +8,18 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configuring session middleware
+  // Create Redis client
+  // const RedisClient = Redis.createClient({
+  //   url: 'redis://localhost:6379',
+  // });
+
+  // // Connect to Redis
+  // await RedisClient.connect();
+
+  // // Configure Redis session store
+  // const RedisStore = connectRedis(session);
+
+  // Configuring session middleware with Redis store
   app.use(
     session({
       secret: process.env.SESSION_KEY,

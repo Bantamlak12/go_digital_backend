@@ -1,4 +1,7 @@
-export function generatePasswordResetEmail(resetUrl: string): string {
+export function generatePasswordResetEmail(
+  resetUrl: string,
+  year: number,
+): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -38,8 +41,10 @@ export function generatePasswordResetEmail(resetUrl: string): string {
       line-height: 1.5;
     }
     .email-footer {
-      text-align: center;
-      margin-top: 20px;
+        margin-top: 20px;
+        font-size: 14px;
+        color: #777777;
+        text-align: center;
     }
     .reset-button {
       display: inline-block;
@@ -70,7 +75,7 @@ export function generatePasswordResetEmail(resetUrl: string): string {
         <p>If you did not request this, please ignore this email.</p>
       </div>
       <div class="email-footer">
-        <p>Thank you,<br>Go Digital Technology</p>
+        <p>&copy; ${year} Go Digital. All rights reserved.</p>
       </div>
     </div>
   </div>

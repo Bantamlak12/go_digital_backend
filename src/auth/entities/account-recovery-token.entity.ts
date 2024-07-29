@@ -2,23 +2,23 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  ManyToOne,
+  OneToOne,
   JoinColumn,
 } from 'typeorm';
 import { Admins } from './admin.entity';
 
 @Entity()
-export class ResetTokens {
+export class RecoveryTokens {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ nullable: true })
-  resetToken: string;
+  recoveryToken: string;
 
   @Column({ type: 'timestamp', nullable: true })
-  resetTokenExpiry: Date;
+  recoveryTokenExpiry: Date;
 
-  @ManyToOne(() => Admins, (admin) => admin.resetTokens, {
+  @OneToOne(() => Admins, (admin) => admin.recoveryTokens, {
     onDelete: 'CASCADE',
   })
   @JoinColumn()

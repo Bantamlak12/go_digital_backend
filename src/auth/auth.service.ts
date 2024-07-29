@@ -12,7 +12,8 @@ import {
 import { randomBytes, scrypt as _scrypt, createHash } from 'crypto';
 import { AdminService } from '../admin/admin.service';
 import { CustomeMailerService } from 'src/shared/mailer/mailer.service';
-import { generatePasswordResetEmail } from 'src/shared/mailer/templates/mailerTemplate';
+import { generateAccountRecoveryEmail } from 'src/shared/mailer/templates/account-recovery-template';
+import { generatePasswordResetEmail } from 'src/shared/mailer/templates/password-reset-template';
 import { promisify } from 'util';
 
 // Change the _scrypt function to promise-based to use await
@@ -27,9 +28,9 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const [admin] = await this.adminService.find(email);
+    const [admin] = await this.adminService.findByEmail(email);
 
-    if (!admin) {
+    if (!admin || !admin.isActive) {
       throw new BadRequestException('User or password is not correct');
     }
 
@@ -58,9 +59,15 @@ export class AuthService {
     return hashedPassword;
   }
 
-  async signup(email: string, password: string, confirmPassword: string) {
+  async signup(
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string,
+    confirmPassword: string,
+  ) {
     // Check if the email is already registered
-    const admins = await this.adminService.find(email);
+    const admins = await this.adminService.findByEmail(email);
 
     // If the user is registered, return an error message
     if (admins.length) {
@@ -71,7 +78,12 @@ export class AuthService {
     const hashedPassword = await this.hashPassword(password, confirmPassword);
 
     // Create the user and save to database
-    const admin = await this.adminService.create(email, hashedPassword);
+    const admin = await this.adminService.createAdmin(
+      firstName,
+      lastName,
+      email,
+      hashedPassword,
+    );
 
     // Return the admin
     return admin;
@@ -114,7 +126,7 @@ export class AuthService {
   }
 
   async forgotPassword(req: any, email: string) {
-    const [admin] = await this.adminService.find(email);
+    const [admin] = await this.adminService.findByEmail(email);
     if (!admin) {
       throw new NotFoundException('The email do not exists.');
     }
@@ -138,7 +150,10 @@ export class AuthService {
 
     const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${token}`;
 
-    const emailBody = generatePasswordResetEmail(resetUrl);
+    const emailBody = generatePasswordResetEmail(
+      resetUrl,
+      new Date().getFullYear(),
+    );
     const subject = 'Password Reset';
 
     try {
@@ -156,9 +171,10 @@ export class AuthService {
     confirmPassword: string,
   ) {
     const hashedToken = createHash('sha256').update(token).digest('hex');
-    const resetToken = await this.adminService.findAdminByToken(hashedToken);
+    const resetToken =
+      await this.adminService.findAdminByResetToken(hashedToken);
 
-    if (!resetToken || resetToken.expiryTime < new Date()) {
+    if (!resetToken || resetToken.resetTokenExpiry < new Date()) {
       throw new BadRequestException('Token is invalid or has expired.');
     }
 
@@ -169,6 +185,86 @@ export class AuthService {
 
     await this.adminService.updatePassword(resetToken.admin.id, hashedPassword);
     await this.adminService.clearPasswordResetToken(resetToken.id);
-    await this.adminService.cleanupExpiredTokens();
+    await this.adminService.cleanupExpiredResetTokens();
+  }
+
+  async deleteAccount(req: any, userId: string) {
+    const admin = await this.adminService.findById(userId);
+    if (!admin) {
+      throw new UnauthorizedException();
+    }
+
+    const recoveryToken = randomBytes(32).toString('hex');
+    const hashedToken = createHash('sha256')
+      .update(recoveryToken)
+      .digest('hex');
+    const deleteAt = new Date();
+    deleteAt.setMonth(deleteAt.getMonth() + 3);
+
+    const isActive = false;
+    const activityStatus = await this.adminService.updateIsActive(
+      userId,
+      isActive,
+    );
+
+    const rToken = await this.adminService.saveAccountRecoveryToken(
+      admin,
+      hashedToken,
+      deleteAt,
+    );
+
+    if (!rToken || !activityStatus) {
+      throw new InternalServerErrorException(
+        'Failed to save Accoun recovery token.',
+      );
+    }
+
+    const restorationLink = `${req.protocol}://${req.get('host')}/restore-account/${recoveryToken}`;
+
+    const emailBody = generateAccountRecoveryEmail(
+      admin.firstName,
+      restorationLink,
+      new Date().getFullYear(),
+    );
+    const subject = 'Account Deletion Notice';
+
+    try {
+      await this.mailerService.sendEmail(admin.email, subject, emailBody);
+    } catch (error) {
+      throw new ServiceUnavailableException(
+        'Failed to send email. Please try again later',
+      );
+    }
+  }
+
+  async restoreAccount(token: string, OldPassword: string) {
+    const hashedToken = createHash('sha256').update(token).digest('hex');
+    const rToken =
+      await this.adminService.findAdminByRecoveryToken(hashedToken);
+
+    if (!rToken || rToken.recoveryTokenExpiry < new Date()) {
+      throw new BadRequestException('Token is invalid or has expired.');
+    }
+
+    const adminEmail = rToken.admin.email;
+    const [admin] = await this.adminService.findByEmail(adminEmail);
+
+    if (!admin || admin.isActive) {
+      throw new BadRequestException('No user found with the email.');
+    }
+
+    const [salt, storedHash] = admin.password.split('.');
+    const newHash = (await scrypt(OldPassword, salt, 32)) as Buffer;
+
+    if (storedHash !== newHash.toString('hex')) {
+      throw new BadRequestException('Password is not correct');
+    }
+
+    const isActive = true;
+    await this.adminService.updateIsActive(rToken.admin.id, isActive);
+    await this.adminService.clearAccountRecoveryToken(rToken.id);
+    await this.adminService.cleanupExpiredRecoveryTokens();
+
+    return rToken.id;
   }
 }

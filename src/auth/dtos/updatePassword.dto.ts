@@ -5,7 +5,7 @@ export class UpdatePasswordDto {
   @IsString()
   @MinLength(8)
   @ApiProperty({
-    example: 'df784y43rS',
+    example: '12345678',
     description: 'Old password of the admin',
   })
   currentPassword: string;
@@ -13,7 +13,7 @@ export class UpdatePasswordDto {
   @IsString()
   @MinLength(8)
   @ApiProperty({
-    example: '12345678',
+    example: 'password',
     description: 'The new password of the admin',
   })
   newPassword: string;
@@ -21,7 +21,7 @@ export class UpdatePasswordDto {
   @IsString()
   @MinLength(8)
   @ApiProperty({
-    example: '12345678',
+    example: 'password',
     description: 'Confirm the new password of the admin',
   })
   confirmPassword: string;
