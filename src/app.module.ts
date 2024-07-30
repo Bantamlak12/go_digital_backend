@@ -5,7 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
-import { BlogModule } from './blog/blog.module';
+import { BlogModule } from './blogs/blog.module';
 import { BookingModule } from './booking/booking.module';
 import { ContactModule } from './contact/contact.module';
 import { VacanciesModule } from './vacancies/vacancies.module';
