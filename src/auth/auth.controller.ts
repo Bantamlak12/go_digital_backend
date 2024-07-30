@@ -95,7 +95,7 @@ export class AuthController {
     summary: 'This endpoint is used to end the current session (sign out).',
   })
   @ApiResponse({ status: 200, description: 'A success sign out message.' })
-  signoutUser(@Request() req: any, @Response() res: any) {
+  async signoutUser(@Request() req: any, @Response() res: any) {
     // Check if the user is logged in
     if (!req.session || !req.session.userId) {
       return res.status(HttpStatus.UNAUTHORIZED).json({
@@ -104,7 +104,7 @@ export class AuthController {
       });
     }
 
-    req.session.destroy((err: any) => {
+    await req.session.destroy((err: any) => {
       if (err)
         return res
           .status(HttpStatus.INTERNAL_SERVER_ERROR)
