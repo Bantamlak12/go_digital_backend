@@ -13,6 +13,9 @@ import { Admins } from './auth/entities/admin.entity';
 import { ResetTokens } from 'src/auth/entities/password-reset-token.entity';
 import { RecoveryTokens } from 'src/auth/entities/account-recovery-token.entity';
 import { MailerConfigModule } from './shared/mailer/mailer.module';
+import { Blogs } from './blogs/entities/blogs.entity';
+import { Comments } from './blogs/entities/comment.entity';
+import { Categories } from './blogs/entities/category.entity';
 
 @Module({
   imports: [
@@ -29,7 +32,14 @@ import { MailerConfigModule } from './shared/mailer/mailer.module';
         username: config.get<string>('DATABASE_USERNAME'),
         password: config.get<string>('DATABASE_PASSWORD'),
         database: config.get<string>('DATABASE_NAME'),
-        entities: [Admins, ResetTokens, RecoveryTokens],
+        entities: [
+          Admins,
+          ResetTokens,
+          RecoveryTokens,
+          Blogs,
+          Comments,
+          Categories,
+        ],
         synchronize: process.env.NODE_ENV !== 'development' ? false : true,
         ssl:
           config.get<string>('NODE_ENV') !== 'development'

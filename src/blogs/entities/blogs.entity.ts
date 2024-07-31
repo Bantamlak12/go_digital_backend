@@ -8,11 +8,11 @@ import {
   JoinTable,
   OneToMany,
 } from 'typeorm';
-import { Comment } from './comment.entity';
-import { Category } from './category.entity';
+import { Comments } from './comment.entity';
+import { Categories } from './category.entity';
 
 @Entity()
-export class Blog {
+export class Blogs {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -37,10 +37,15 @@ export class Blog {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToMany(() => Category, (category) => category.blogs)
-  @JoinTable() // Specify the join table for many to many relashionship
-  categories: Category[];
+  @ManyToMany(() => Categories, (category) => category.blogs)
+  @JoinTable({
+    name: 'blog_categories',
+  }) // Specify the join table for many to many relashionship
+  categories: Categories[];
 
-  @OneToMany(() => Comment, (comment) => comment.blog)
-  comments: Comment[];
+  @OneToMany(() => Comments, (comment) => comment.blog, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  comments: Comments[];
 }

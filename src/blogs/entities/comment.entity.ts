@@ -5,10 +5,16 @@ import {
   CreateDateColumn,
   ManyToOne,
 } from 'typeorm';
-import { Blog } from './blogs.entity';
+import { Blogs } from './blogs.entity';
+
+export enum CommentStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
 
 @Entity()
-export class Comment {
+export class Comments {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -18,9 +24,16 @@ export class Comment {
   @Column()
   content: string;
 
+  @Column({
+    type: 'enum',
+    enum: CommentStatus,
+    default: CommentStatus.PENDING,
+  })
+  status: CommentStatus;
+
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => Blog, (blog) => blog.comments)
-  blog: Blog;
+  @ManyToOne(() => Blogs, (blog) => blog.comments)
+  blog: Blogs;
 }

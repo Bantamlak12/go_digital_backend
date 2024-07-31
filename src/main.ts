@@ -36,8 +36,8 @@ async function bootstrap() {
         resave: false,
         saveUninitialized: false,
         cookie: {
-          secure: process.env.NODE_ENV === 'production' ? true : false,
-          httpOnly: process.env.NODE_ENV === 'production' ? true : false,
+          secure: false, // process.env.NODE_ENV === 'production' ? true : false,
+          httpOnly: false, //process.env.NODE_ENV === 'production' ? true : false,
           sameSite: 'strict',
           maxAge: 24 * 60 * 60 * 1000,
         },

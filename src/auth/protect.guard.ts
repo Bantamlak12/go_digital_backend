@@ -4,6 +4,7 @@ import {
   Injectable,
   Inject,
   forwardRef,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { AdminService } from 'src/admin/admin.service';
@@ -16,7 +17,7 @@ export class Protect implements CanActivate {
 
     if (request.session.userId) return true;
 
-    response.redirect('/auth/signin');
+    // response.redirect('/auth/signin');
     return false;
   }
 }

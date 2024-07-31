@@ -5,6 +5,8 @@ import { Cron } from '@nestjs/schedule';
 import { Admins } from '../auth/entities/admin.entity';
 import { ResetTokens } from 'src/auth/entities/password-reset-token.entity';
 import { RecoveryTokens } from 'src/auth/entities/account-recovery-token.entity';
+import { title } from 'process';
+import { Categories } from 'src/blogs/entities/category.entity';
 
 @Injectable()
 export class AdminService {
@@ -16,6 +18,10 @@ export class AdminService {
     @InjectRepository(RecoveryTokens)
     private accountRecoveryTokenRepo: Repository<RecoveryTokens>,
   ) {}
+
+  /*********************************************************************/
+  // AUTHENTICATIN AND AUTHORIZATION RELATED METHODS
+  /*********************************************************************/
 
   createAdmin(
     firstName: string,
@@ -134,4 +140,29 @@ export class AdminService {
   // | | hours (0-23)
   // | minutes (0-59)
   // seconds (optional)
+
+  /*********************************************************************/
+  // BLOG RELATED METHODS
+  /*********************************************************************/
+  // It creates entries to the database
+  async create<T>(repository: Repository<T>, body: any): Promise<T[]> {
+    const res = repository.create(body);
+    return await repository.save(res);
+  }
+  // It get a single data from a database
+  async getAll<T>(repository: Repository<T>): Promise<T[]> {
+    const res = await repository.find();
+    return res;
+  }
+
+  // It get all data from database
+  async getOne<T>(repository: Repository<T>, id: string): Promise<T | null> {
+    const res = await repository.findOneBy({ id } as any);
+    return res;
+  }
+
+  // It updates data in a database
+  async getUpdate<T>(repository: Repository<T>, id: string, body: any) {
+    await repository.update(id, body);
+  }
 }

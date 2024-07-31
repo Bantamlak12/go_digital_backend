@@ -1,14 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
-import { Blog } from './blogs.entity';
+import { Blogs } from './blogs.entity';
 
 @Entity()
-export class Category {
+export class Categories {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
   name: string;
 
-  @ManyToMany(() => Blog, (blog) => blog.categories)
-  blogs: Blog[];
+  @ManyToMany(() => Blogs, (blog) => blog.categories)
+  blogs: Blogs[];
 }
