@@ -37,11 +37,11 @@ export class Blogs {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToMany(() => Categories, (category) => category.blogs)
-  @JoinTable({
-    name: 'blog_categories',
-  }) // Specify the join table for many to many relashionship
-  categories: Categories[];
+  // @ManyToMany(() => Categories, (category) => category.blogs)
+  // @JoinTable({
+  //   name: 'blog_categories',
+  // }) // Specify the join table for many to many relashionship
+  // categories: Categories[];
 
   @OneToMany(() => Comments, (comment) => comment.blog, {
     cascade: true,

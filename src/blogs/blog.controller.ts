@@ -8,7 +8,6 @@ import {
   Body,
   Response,
   HttpStatus,
-  Put,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiParam, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -139,7 +138,7 @@ export class BlogController {
       res.status(HttpStatus.BAD_REQUEST).json({
         status: 'error',
         mesage: 'Failed to update your blog.',
-        Error: err.message,
+        Error: err,
       });
     }
   }

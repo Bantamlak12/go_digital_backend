@@ -5,7 +5,6 @@ import { Cron } from '@nestjs/schedule';
 import { Admins } from '../auth/entities/admin.entity';
 import { ResetTokens } from 'src/auth/entities/password-reset-token.entity';
 import { RecoveryTokens } from 'src/auth/entities/account-recovery-token.entity';
-import { title } from 'process';
 import { Categories } from 'src/blogs/entities/category.entity';
 
 @Injectable()
@@ -162,7 +161,12 @@ export class AdminService {
   }
 
   // It updates data in a database
-  async getUpdate<T>(repository: Repository<T>, id: string, body: any) {
+  async getUpdate<T>(
+    repository: Repository<T>,
+    id: string,
+    body: any,
+  ): Promise<T | null> {
     await repository.update(id, body);
+    return await repository.findOneBy({ id } as any);
   }
 }
