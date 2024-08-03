@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LessThan, Repository } from 'typeorm';
+import { FindOptionsWhere, In, LessThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Admins } from '../auth/entities/admin.entity';
@@ -168,5 +168,15 @@ export class AdminService {
   ): Promise<T | null> {
     await repository.update(id, body);
     return await repository.findOneBy({ id } as any);
+  }
+
+  // Find by IDs
+  async findByIds<T>(repository: Repository<T>, ids: string[]): Promise<T[]> {
+    const where: FindOptionsWhere<T> = {
+      id: In(ids),
+    } as any;
+    const result = await repository.find({ where });
+
+    return result;
   }
 }

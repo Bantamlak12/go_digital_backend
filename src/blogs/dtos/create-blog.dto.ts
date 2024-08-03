@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  ArrayNotEmpty,
+  IsUUID,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateBlogDto {
@@ -44,9 +51,13 @@ export class CreateBlogDto {
   author: string;
 
   @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('4', { each: true })
   @ApiProperty({
     example: 'Science',
     description: 'Categories of the blog belong to.',
+    type: [String],
   })
-  categories?: string[];
+  categoryIds?: string[];
 }

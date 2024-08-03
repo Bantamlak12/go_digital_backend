@@ -40,7 +40,7 @@ export class BlogController {
     @Response() res: ExpressResponse,
   ): Promise<void> {
     try {
-      const blog = await this.adminService.create(this.blogRepo, body);
+      const blog = await this.blogService.createBlog(body);
 
       res.status(HttpStatus.CREATED).json({
         status: 'success',
@@ -52,7 +52,7 @@ export class BlogController {
       res.status(HttpStatus.BAD_REQUEST).json({
         status: 'error',
         mesage: 'Failed to create blog',
-        Error: err.message,
+        error: err.message,
       });
     }
   }
@@ -75,7 +75,7 @@ export class BlogController {
       res.status(HttpStatus.BAD_REQUEST).json({
         status: 'error',
         mesage: 'Failed to get blogs.',
-        Error: err.message,
+        error: err.message,
       });
     }
   }
@@ -104,7 +104,7 @@ export class BlogController {
       res.status(HttpStatus.BAD_REQUEST).json({
         status: 'error',
         mesage: 'Failed to get blogs.',
-        Error: err.message,
+        error: err.message,
       });
     }
   }
@@ -138,7 +138,7 @@ export class BlogController {
       res.status(HttpStatus.BAD_REQUEST).json({
         status: 'error',
         mesage: 'Failed to update your blog.',
-        Error: err,
+        error: err,
       });
     }
   }

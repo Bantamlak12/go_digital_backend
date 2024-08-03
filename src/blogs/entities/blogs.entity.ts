@@ -4,9 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
+  ManyToOne,
   ManyToMany,
   JoinTable,
-  OneToMany,
 } from 'typeorm';
 import { Comments } from './comment.entity';
 import { Categories } from './category.entity';
@@ -37,11 +38,13 @@ export class Blogs {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // @ManyToMany(() => Categories, (category) => category.blogs)
-  // @JoinTable({
-  //   name: 'blog_categories',
-  // }) // Specify the join table for many to many relashionship
-  // categories: Categories[];
+  @ManyToMany(() => Categories, (category) => category.blogs)
+  @JoinTable({
+    name: 'blog_categories',
+    joinColumn: { name: 'blog_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
+  })
+  categories: Categories[];
 
   @OneToMany(() => Comments, (comment) => comment.blog, {
     cascade: true,

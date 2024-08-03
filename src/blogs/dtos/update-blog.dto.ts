@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  ArrayNotEmpty,
+  IsUUID,
+} from 'class-validator';
 
 export class UpdateBlogDto {
   @IsOptional()
@@ -38,8 +44,13 @@ export class UpdateBlogDto {
   author?: string;
 
   @IsOptional()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID('4', { each: true })
   @ApiProperty({
-    example: 'Space Science',
+    example: 'Science',
+    description: 'Categories of the blog belong to.',
+    type: [String],
   })
-  categories?: string[];
+  categoryIds?: string[];
 }
