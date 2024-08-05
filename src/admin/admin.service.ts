@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindOptionsWhere, In, LessThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
@@ -21,39 +21,6 @@ export class AdminService {
   /*********************************************************************/
   // AUTHENTICATIN AND AUTHORIZATION RELATED METHODS
   /*********************************************************************/
-
-  createAdmin(
-    firstName: string,
-    lastName: string,
-    email: string,
-    password: string,
-  ): Promise<Admins> {
-    const isActive = true;
-    const createdAt = new Date();
-    const admin = this.repo.create({
-      firstName,
-      lastName,
-      email,
-      password,
-      isActive,
-      createdAt,
-    });
-
-    return this.repo.save(admin);
-  }
-
-  async findByEmail(email: string): Promise<Admins[]> {
-    return await this.repo.find({ where: { email } });
-  }
-
-  async findById(id: string): Promise<Admins> {
-    return await this.repo.findOne({ where: { id } });
-  }
-
-  async updatePassword(id: string, password: string): Promise<void> {
-    await this.repo.update({ id }, { password });
-  }
-
   async updateIsActive(id: string, isActive: boolean) {
     const result = await this.repo.update({ id }, { isActive });
     return result;
@@ -141,7 +108,7 @@ export class AdminService {
   // seconds (optional)
 
   /*********************************************************************/
-  // BLOG RELATED METHODS
+  // GENERAL METHODS USED TO PERFORM ACTIONS ON A REPOSITORY
   /*********************************************************************/
   // It creates entries to the database
   async create<T>(repository: Repository<T>, body: any): Promise<T[]> {
@@ -166,7 +133,22 @@ export class AdminService {
     id: string,
     body: any,
   ): Promise<T | null> {
-    await repository.update(id, body);
+    try {
+      await repository.update(id, body);
+      return await repository.findOneBy({ id } as any);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async findByEmail<T>(repository: Repository<T>, email: string): Promise<T[]> {
+    const where: FindOptionsWhere<T> = {
+      email,
+    } as any;
+    return await repository.find({ where });
+  }
+
+  async findById<T>(repository: Repository<T>, id: string): Promise<T> {
     return await repository.findOneBy({ id } as any);
   }
 
@@ -178,5 +160,11 @@ export class AdminService {
     const result = await repository.find({ where });
 
     return result;
+  }
+
+  async delete<T>(repository: Repository<T>, id: string): Promise<void> {
+    const instance = await this.findById(repository, id);
+
+    await repository.remove(instance);
   }
 }
