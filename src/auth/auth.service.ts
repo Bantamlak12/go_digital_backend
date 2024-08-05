@@ -15,6 +15,9 @@ import { CustomeMailerService } from 'src/shared/mailer/mailer.service';
 import { generateAccountRecoveryEmail } from 'src/shared/mailer/templates/account-recovery-template';
 import { generatePasswordResetEmail } from 'src/shared/mailer/templates/password-reset-template';
 import { promisify } from 'util';
+import { Admins } from './entities/admin.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 // Change the _scrypt function to promise-based to use await
 const scrypt = promisify(_scrypt);
@@ -25,10 +28,12 @@ export class AuthService {
     @Inject(forwardRef(() => AdminService))
     private adminService: AdminService,
     private mailerService: CustomeMailerService,
+    @InjectRepository(Admins)
+    private authRepo: Repository<Admins>,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const [admin] = await this.adminService.findByEmail(email);
+    const [admin] = await this.adminService.findByEmail(this.authRepo, email);
 
     if (!admin || !admin.isActive) {
       throw new BadRequestException('User or password is not correct');
@@ -67,7 +72,7 @@ export class AuthService {
     confirmPassword: string,
   ) {
     // Check if the email is already registered
-    const admins = await this.adminService.findByEmail(email);
+    const admins = await this.adminService.findByEmail(this.authRepo, email);
 
     // If the user is registered, return an error message
     if (admins.length) {
@@ -96,7 +101,7 @@ export class AuthService {
     confirmPassword: string,
   ) {
     // Check if the user exist in the database
-    const admin = await this.adminService.findById(userId);
+    const admin = await this.adminService.findById(this.authRepo, userId);
 
     if (!admin) {
       throw new UnauthorizedException();
@@ -126,7 +131,7 @@ export class AuthService {
   }
 
   async forgotPassword(req: any, email: string) {
-    const [admin] = await this.adminService.findByEmail(email);
+    const [admin] = await this.adminService.findByEmail(this.authRepo, email);
     if (!admin) {
       throw new NotFoundException('The email do not exists.');
     }
@@ -189,7 +194,7 @@ export class AuthService {
   }
 
   async deleteAccount(req: any, userId: string) {
-    const admin = await this.adminService.findById(userId);
+    const admin = await this.adminService.findById(this.authRepo, userId);
     if (!admin) {
       throw new UnauthorizedException();
     }
@@ -247,7 +252,10 @@ export class AuthService {
     }
 
     const adminEmail = rToken.admin.email;
-    const [admin] = await this.adminService.findByEmail(adminEmail);
+    const [admin] = await this.adminService.findByEmail(
+      this.authRepo,
+      adminEmail,
+    );
 
     if (!admin || admin.isActive) {
       throw new BadRequestException('No user found with the email.');
