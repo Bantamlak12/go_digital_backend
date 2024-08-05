@@ -1,4 +1,9 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdminService } from 'src/admin/admin.service';
@@ -14,10 +19,53 @@ export class BlogService {
     @InjectRepository(Categories)
     private categoryRepo: Repository<Categories>,
   ) {}
-  async createBlog(body: any) {
-    const category = await this.adminService.findByIds(
+
+  private async checkAndReturnCategories(body: any) {
+    const categories = await this.adminService.findByIds(
       this.categoryRepo,
       body.categoryIds,
     );
+
+    if (categories.length !== body.categoryIds.length) {
+      throw new NotFoundException('One or more categories not found.');
+    }
+
+    const categoryNames = categories.map((category) => category.name);
+
+    return categoryNames;
+  }
+
+  async createBlog(body: any) {
+    const categoryNames = await this.checkAndReturnCategories(body);
+
+    const newBlog = await this.adminService.create(this.blogRepo, {
+      title: body.title,
+      slug: body.slug,
+      content: body.content,
+      picture: body.picture,
+      author: body.author,
+      categories: categoryNames,
+    });
+
+    return newBlog;
+  }
+
+  async updateBlog(blogId: string, body: any) {
+    const categoryNames = await this.checkAndReturnCategories(body);
+
+    const updatedBlog = await this.adminService.getUpdate(
+      this.blogRepo,
+      blogId,
+      {
+        title: body.title,
+        slug: body.slug,
+        content: body.content,
+        picture: body.picture,
+        author: body.author,
+        categories: categoryNames,
+      },
+    );
+
+    return updatedBlog;
   }
 }

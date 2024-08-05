@@ -7,11 +7,12 @@ import { CategoriesController } from './category.controller';
 import { AdminModule } from 'src/admin/admin.module';
 import { Blogs } from './entities/blogs.entity';
 import { Categories } from './entities/category.entity';
+import { Comments } from './entities/comment.entity';
 
 @Module({
   imports: [
     forwardRef(() => AdminModule),
-    TypeOrmModule.forFeature([Blogs, Categories]),
+    TypeOrmModule.forFeature([Blogs, Categories, Comments]),
   ],
   controllers: [BlogController, CommentsController, CategoriesController],
   providers: [BlogService],

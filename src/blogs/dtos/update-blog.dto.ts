@@ -1,55 +1,65 @@
-import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
+  IsNotEmpty,
   IsOptional,
   IsArray,
   ArrayNotEmpty,
   IsUUID,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateBlogDto {
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @ApiProperty({
-    example: 'Exploring the Cosmos',
+    example: 'My New Blog Post updated',
+    description: 'Title of the blog post.',
   })
-  title?: string;
+  title: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: 'my-new-blog-post',
+    description: 'Part of a url and for SEO ranking',
+  })
+  slug: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    example: 'This is the updated content of the blog post.',
+    description: 'Main content of the blog post.',
+  })
+  content: string;
 
   @IsOptional()
   @IsString()
   @ApiProperty({
-    example: 'Exploring the Cosmos',
-  })
-  slug?: string;
-
-  @IsOptional()
-  @IsString()
-  @ApiProperty({
-    example: 'An in-depth look at the wonders of space exploration...',
-  })
-  content?: string;
-
-  @IsOptional()
-  @IsString()
-  @ApiProperty({
-    example: 'https://www.goo',
+    example: 'https://example.com/image.jpg',
+    description: 'Add image for your blog post.',
   })
   picture: string;
 
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @ApiProperty({
-    example: 'Selam Meke',
+    example: 'Selam Melaku',
+    description: 'Name of the author that writes the post.',
   })
-  author?: string;
+  author: string;
 
   @IsOptional()
   @IsArray()
   @ArrayNotEmpty()
   @IsUUID('4', { each: true })
   @ApiProperty({
-    example: 'Science',
-    description: 'Categories of the blog belong to.',
+    example: ['category-id-1', 'category-id-3'],
+    description: 'Categories of the blog.',
     type: [String],
   })
   categoryIds?: string[];

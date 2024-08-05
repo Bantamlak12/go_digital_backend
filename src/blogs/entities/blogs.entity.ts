@@ -32,23 +32,18 @@ export class Blogs {
   @Column()
   author: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @ManyToMany(() => Categories, (category) => category.blogs)
-  @JoinTable({
-    name: 'blog_categories',
-    joinColumn: { name: 'blog_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
-  })
-  categories: Categories[];
+  @Column('text', { array: true, nullable: true })
+  categories: string[];
 
   @OneToMany(() => Comments, (comment) => comment.blog, {
     cascade: true,
     onDelete: 'CASCADE',
   })
   comments: Comments[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

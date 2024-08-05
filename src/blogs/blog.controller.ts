@@ -17,10 +17,14 @@ import { CreateBlogDto } from './dtos/create-blog.dto';
 import { UpdateBlogDto } from './dtos/update-blog.dto';
 import { CreateCommentDto } from './dtos/create-comment.dto';
 import { UpdateCommentDto } from './dtos/update-comment.dto';
-import { CommentStatus } from './entities/comment.entity';
+import { Comments, CommentStatus } from './entities/comment.entity';
 import { BlogService } from './blog.service';
 import { AdminService } from 'src/admin/admin.service';
 import { Blogs } from 'src/blogs/entities/blogs.entity';
+
+const capitalizeString = (input: any): string => {
+  return input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
+};
 
 @ApiTags('blogs')
 @Controller('blogs')
@@ -30,8 +34,11 @@ export class BlogController {
     private adminService: AdminService,
     @InjectRepository(Blogs)
     private blogRepo: Repository<Blogs>,
+    @InjectRepository(Comments)
+    private commentRepo: Repository<Comments>,
   ) {}
 
+  // Create a blog
   @Post('/')
   @ApiOperation({ summary: 'This endpoint creates a blog post' })
   @ApiResponse({ status: 201 })
@@ -57,6 +64,7 @@ export class BlogController {
     }
   }
 
+  // Get all blogs
   @Get('/')
   @ApiOperation({ summary: 'This endpoint gets all blogs in the database.' })
   @ApiResponse({ status: 200 })
@@ -80,8 +88,9 @@ export class BlogController {
     }
   }
 
+  // Get a specific blog
   @Get('/:blogId')
-  @ApiOperation({ summary: 'This endpoint get a specific blog.' })
+  @ApiOperation({ summary: 'This endpoint gets a specific blog.' })
   @ApiResponse({ status: 200 })
   @ApiParam({
     name: 'blogId',
@@ -109,6 +118,7 @@ export class BlogController {
     }
   }
 
+  // Update a specifiific blog
   @Patch('/:blogId')
   @ApiOperation({ summary: 'This endpoint updates a specific blog post.' })
   @ApiResponse({ status: 200 })
@@ -122,11 +132,7 @@ export class BlogController {
     @Response() res: ExpressResponse,
   ): Promise<void> {
     try {
-      const updatedBlog = await this.adminService.getUpdate(
-        this.blogRepo,
-        blogId,
-        body,
-      );
+      const updatedBlog = await this.blogService.updateBlog(blogId, body);
 
       res.status(HttpStatus.OK).json({
         status: 'success',
@@ -144,13 +150,69 @@ export class BlogController {
   }
 
   @Delete('/:blogId')
-  deleteBlog(@Param('id') blogId: string) {}
+  @ApiOperation({ summary: 'This endpoint is used to deleted a blog post.' })
+  @ApiResponse({
+    status: 204,
+    description:
+      'This API only return the status code 204 for successfull deletion',
+  })
+  @ApiParam({
+    name: 'blogId',
+    description: 'Id of the blog to be updated.',
+  })
+  async deleteBlog(
+    @Param('blogId') blogId: string,
+    @Response() res: ExpressResponse,
+  ) {
+    try {
+      await this.adminService.delete(this.blogRepo, blogId);
+
+      res.status(HttpStatus.NO_CONTENT).json({
+        status: 'success',
+        data: null,
+      });
+    } catch (err) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'error',
+        mesage: 'Failed to delete your blog.',
+        error: err,
+      });
+    }
+  }
 
   @Post('/:blogId/comments')
-  createComment(
+  @ApiOperation({
+    summary: 'This endpoint is used to create a comment for a blog.',
+  })
+  @ApiResponse({ status: 201 })
+  @ApiParam({
+    name: 'blogId',
+    description: 'Id of the blog to be commented.',
+  })
+  async createComment(
     @Body() body: CreateCommentDto,
     @Param('blogId') blogId: string,
-  ) {}
+    @Response() res: ExpressResponse,
+  ) {
+    try {
+      const comment = await this.adminService.create(this.commentRepo, {
+        firstName: capitalizeString(body.firstName),
+        lastName: capitalizeString(body.lastName),
+        content: capitalizeString(body.content),
+      });
+
+      res.status(HttpStatus.CREATED).json({
+        status: 'success',
+        data: comment,
+      });
+    } catch (err) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'error',
+        mesage: 'Failed to create your comment.',
+        error: err,
+      });
+    }
+  }
 
   @Get('/:blogId/comments')
   getComments(@Param('blogId') blogId: string) {}

@@ -12,7 +12,7 @@ export class CreateBlogDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({
-    example: 'Exploring the Cosmos',
+    example: 'My New Blog Post',
     description: 'Title of the blog post.',
   })
   title: string;
@@ -20,7 +20,7 @@ export class CreateBlogDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({
-    example: 'exploring-the-cosmos',
+    example: 'my-new-blog-post',
     description: 'Part of a url and for SEO ranking',
   })
   slug: string;
@@ -28,8 +28,7 @@ export class CreateBlogDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({
-    example:
-      'An in-depth look at the wonders of space exploration and the latest discoveries in astronomy.',
+    example: 'This is the content of the blog post.',
     description: 'Main content of the blog post.',
   })
   content: string;
@@ -37,7 +36,7 @@ export class CreateBlogDto {
   @IsOptional()
   @IsString()
   @ApiProperty({
-    example: 'https://www.google.com/u',
+    example: 'https://example.com/image.jpg',
     description: 'Add image for your blog post.',
   })
   picture: string;
@@ -55,8 +54,8 @@ export class CreateBlogDto {
   @ArrayNotEmpty()
   @IsUUID('4', { each: true })
   @ApiProperty({
-    example: 'Science',
-    description: 'Categories of the blog belong to.',
+    example: ['category-id-1', 'category-id-2'],
+    description: 'Categories of the blog.',
     type: [String],
   })
   categoryIds?: string[];

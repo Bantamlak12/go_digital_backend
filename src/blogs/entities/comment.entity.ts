@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Blogs } from './blogs.entity';
 
@@ -19,7 +20,10 @@ export class Comments {
   id: string;
 
   @Column()
-  authorName: string;
+  firstName: string;
+
+  @Column()
+  lastName: string;
 
   @Column()
   content: string;
@@ -31,9 +35,12 @@ export class Comments {
   })
   status: CommentStatus;
 
+  @ManyToOne(() => Blogs, (blog) => blog.comments)
+  blog: Blogs;
+
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => Blogs, (blog) => blog.comments)
-  blog: Blogs;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
