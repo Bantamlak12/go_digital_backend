@@ -83,12 +83,12 @@ export class AuthService {
     const hashedPassword = await this.hashPassword(password, confirmPassword);
 
     // Create the user and save to database
-    const admin = await this.adminService.createAdmin(
+    const admin = await this.adminService.create(this.authRepo, {
       firstName,
       lastName,
       email,
-      hashedPassword,
-    );
+      password: hashedPassword,
+    });
 
     // Return the admin
     return admin;
@@ -127,7 +127,9 @@ export class AuthService {
       confirmPassword,
     );
 
-    await this.adminService.updatePassword(userId, hashedPassword);
+    await this.adminService.getUpdate(this.authRepo, userId, {
+      password: hashedPassword,
+    });
   }
 
   async forgotPassword(req: any, email: string) {
@@ -188,7 +190,9 @@ export class AuthService {
       confirmPassword,
     );
 
-    await this.adminService.updatePassword(resetToken.admin.id, hashedPassword);
+    await this.adminService.getUpdate(this.authRepo, resetToken.admin.id, {
+      password: hashedPassword,
+    });
     await this.adminService.clearPasswordResetToken(resetToken.id);
     await this.adminService.cleanupExpiredResetTokens();
   }
