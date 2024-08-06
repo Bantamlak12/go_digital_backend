@@ -1,11 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FindOptionsWhere, In, LessThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Admins } from '../auth/entities/admin.entity';
 import { ResetTokens } from 'src/auth/entities/password-reset-token.entity';
 import { RecoveryTokens } from 'src/auth/entities/account-recovery-token.entity';
-import { Categories } from 'src/blogs/entities/category.entity';
 
 @Injectable()
 export class AdminService {
