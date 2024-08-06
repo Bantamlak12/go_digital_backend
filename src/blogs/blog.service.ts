@@ -1,14 +1,13 @@
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdminService } from 'src/admin/admin.service';
 import { Blogs } from './entities/blogs.entity';
 import { Categories } from './entities/category.entity';
+
+const capitalizeString = (input: any): string => {
+  return input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
+};
 
 @Injectable()
 export class BlogService {
@@ -21,6 +20,10 @@ export class BlogService {
   ) {}
 
   private async checkAndReturnCategories(body: any) {
+    if (!body.categoryIds) {
+      return null;
+    }
+
     const categories = await this.adminService.findByIds(
       this.categoryRepo,
       body.categoryIds,
@@ -43,7 +46,7 @@ export class BlogService {
       slug: body.slug,
       content: body.content,
       picture: body.picture,
-      author: body.author,
+      author: capitalizeString(body.author),
       categories: categoryNames,
     });
 
@@ -51,21 +54,25 @@ export class BlogService {
   }
 
   async updateBlog(blogId: string, body: any) {
-    const categoryNames = await this.checkAndReturnCategories(body);
+    try {
+      const categoryNames = await this.checkAndReturnCategories(body);
 
-    const updatedBlog = await this.adminService.getUpdate(
-      this.blogRepo,
-      blogId,
-      {
-        title: body.title,
-        slug: body.slug,
-        content: body.content,
-        picture: body.picture,
-        author: body.author,
-        categories: categoryNames,
-      },
-    );
+      const updatedBlog = await this.adminService.getUpdate(
+        this.blogRepo,
+        blogId,
+        {
+          title: body.title,
+          slug: body.slug,
+          content: body.content,
+          picture: body.picture,
+          author: capitalizeString(body.author),
+          categories: categoryNames,
+        },
+      );
 
-    return updatedBlog;
+      return updatedBlog;
+    } catch (err) {
+      console.error(err);
+    }
   }
 }
