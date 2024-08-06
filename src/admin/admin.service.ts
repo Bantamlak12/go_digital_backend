@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindOptionsWhere, In, LessThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Admins } from '../auth/entities/admin.entity';
 import { ResetTokens } from 'src/auth/entities/password-reset-token.entity';
 import { RecoveryTokens } from 'src/auth/entities/account-recovery-token.entity';
+import { Comments } from 'src/blogs/entities/comment.entity';
+import { Blogs } from 'src/blogs/entities/blogs.entity';
 
 @Injectable()
 export class AdminService {
@@ -114,10 +116,54 @@ export class AdminService {
     const res = repository.create(body);
     return await repository.save(res);
   }
+
+  // Creates a blog
+  async createBlog(
+    blogRepo: Repository<Blogs>,
+    commentRepo: Repository<Comments>,
+    blogId: string,
+    body: any,
+  ): Promise<Comments> {
+    const { firstName, lastName, content } = body;
+
+    const blog = await blogRepo.findOne({ where: { id: blogId } });
+
+    if (!blog) {
+      throw new NotFoundException('Blog is not found.');
+    }
+
+    // Create a new comment
+    const comment = commentRepo.create({
+      firstName,
+      lastName,
+      content,
+      blog,
+    });
+    return await commentRepo.save(comment);
+  }
+
   // It get a single data from a database
   async getAll<T>(repository: Repository<T>): Promise<T[]> {
     const res = await repository.find();
     return res;
+  }
+
+  // It get all blogs related to the blog post
+  async getAllBlogsComments(
+    repository: Repository<Comments>,
+    blogId: string,
+  ): Promise<Comments[]> {
+    try {
+      const res = await repository.find({
+        where: {
+          blog: { id: blogId } as any,
+        },
+      });
+      return res;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   }
 
   // It get all data from database
