@@ -6,6 +6,7 @@ import { Blogs } from './entities/blogs.entity';
 import { Categories } from './entities/category.entity';
 
 const capitalizeString = (input: any): string => {
+  if (!input) return;
   return input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
 };
 

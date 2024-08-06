@@ -23,6 +23,7 @@ import { AdminService } from 'src/admin/admin.service';
 import { Blogs } from 'src/blogs/entities/blogs.entity';
 
 const capitalizeString = (input: any): string => {
+  if (!input) return;
   return input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
 };
 
