@@ -196,11 +196,16 @@ export class BlogController {
     @Response() res: ExpressResponse,
   ) {
     try {
-      const comment = await this.adminService.create(this.commentRepo, {
-        firstName: capitalizeString(body.firstName),
-        lastName: capitalizeString(body.lastName),
-        content: capitalizeString(body.content),
-      });
+      const comment = await this.adminService.createBlog(
+        this.blogRepo,
+        this.commentRepo,
+        blogId,
+        {
+          firstName: capitalizeString(body.firstName),
+          lastName: capitalizeString(body.lastName),
+          content: capitalizeString(body.content),
+        },
+      );
 
       res.status(HttpStatus.CREATED).json({
         status: 'success',
@@ -216,7 +221,37 @@ export class BlogController {
   }
 
   @Get('/:blogId/comments')
-  getComments(@Param('blogId') blogId: string) {}
+  @ApiOperation({
+    summary:
+      'This endpoint is used to get all comments related to the blog post Id.',
+  })
+  @ApiResponse({ status: 200 })
+  @ApiParam({
+    name: 'blogId',
+    description: 'Id of the blog post used to retrieve the comments.',
+  })
+  async getComments(
+    @Param('blogId') blogId: string,
+    @Response() res: ExpressResponse,
+  ) {
+    try {
+      const comments = await this.adminService.getAllBlogsComments(
+        this.commentRepo,
+        blogId,
+      );
+      res.status(HttpStatus.CREATED).json({
+        status: 'success',
+        results: comments.length,
+        data: comments,
+      });
+    } catch (err) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'error',
+        mesage: 'Failed to retrive all comments for the blog.',
+        error: err.message,
+      });
+    }
+  }
 
   @Get('/:blogId/comments/:commentId')
   getComment(
