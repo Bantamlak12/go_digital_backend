@@ -5,12 +5,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  ManyToOne,
-  ManyToMany,
-  JoinTable,
 } from 'typeorm';
 import { Comments } from './comment.entity';
-import { Categories } from './category.entity';
 
 @Entity()
 export class Blogs {
