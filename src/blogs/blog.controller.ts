@@ -223,7 +223,7 @@ export class BlogController {
   @Get('/:blogId/comments')
   @ApiOperation({
     summary:
-      'This endpoint is used to get all comments related to the blog post Id.',
+      'This endpoint is used to get all comments related to the blog post Id. The admin need to use this API to see all commment.',
   })
   @ApiResponse({ status: 200 })
   @ApiParam({
@@ -235,11 +235,44 @@ export class BlogController {
     @Response() res: ExpressResponse,
   ) {
     try {
-      const comments = await this.adminService.getAllBlogsComments(
+      const comments = await this.adminService.getAllBlogComments(
         this.commentRepo,
         blogId,
       );
-      res.status(HttpStatus.CREATED).json({
+      res.status(HttpStatus.OK).json({
+        status: 'success',
+        results: comments.length,
+        data: comments,
+      });
+    } catch (err) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'error',
+        mesage: 'Failed to retrive all comments for the blog.',
+        error: err.message,
+      });
+    }
+  }
+
+  @Get('/:blogId/approved-comments')
+  @ApiOperation({
+    summary: `This endpoint is used to get all approved comments related to the blog post Id.
+      The frontend developer can use this API to display only the approved comments to the blog post.`,
+  })
+  @ApiResponse({ status: 200 })
+  @ApiParam({
+    name: 'blogId',
+    description: 'Id of the blog post used to retrieve the comments.',
+  })
+  async getApprovedComments(
+    @Param('blogId') blogId: string,
+    @Response() res: ExpressResponse,
+  ) {
+    try {
+      const comments = await this.adminService.getAllApprovedBlogComments(
+        this.commentRepo,
+        blogId,
+      );
+      res.status(HttpStatus.OK).json({
         status: 'success',
         results: comments.length,
         data: comments,
@@ -254,16 +287,71 @@ export class BlogController {
   }
 
   @Get('/:blogId/comments/:commentId')
-  getComment(
+  @ApiOperation({
+    summary:
+      'This endpoint is used to get a specific comment for the blog post.',
+  })
+  @ApiResponse({ status: 200 })
+  @ApiParam({
+    name: 'blogId',
+    description: 'Id of the blog post.',
+  })
+  @ApiParam({
+    name: 'commentId',
+    description: 'Id of the comment.',
+  })
+  async getComment(
     @Param('blogId') blogId: string,
     @Param('commentId') commentId: string,
-  ) {}
+    @Response() res: ExpressResponse,
+  ) {
+    try {
+      const comment = await this.adminService.getComment(
+        this.commentRepo,
+        blogId,
+        commentId,
+      );
+      res.status(HttpStatus.OK).json({
+        status: 'success',
+        data: comment,
+      });
+    } catch (err) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'error',
+        mesage: 'Failed to retrive the comment for the blog.',
+        error: err.message,
+      });
+    }
+  }
 
   @Patch('/comments/:commentId')
-  updateComment(
+  @ApiOperation({
+    summary:
+      'This endpoint is used to update a comment. Admin can only update the comment.',
+  })
+  async updateComment(
     @Body() body: UpdateCommentDto,
     @Param('commentId') commentId: string,
-  ) {}
+    @Response() res: ExpressResponse,
+  ) {
+    try {
+      const commentedComment = await this.adminService.getUpdate(
+        this.commentRepo,
+        commentId,
+        body,
+      );
+      res.status(HttpStatus.OK).json({
+        status: 'success',
+        data: commentedComment,
+      });
+    } catch (err) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'error',
+        mesage: 'Failed to update the comment for the blog.',
+        error: err.message,
+      });
+    }
+  }
 
   @Patch('/comments/:commentId/status')
   updateCommentStatus(
