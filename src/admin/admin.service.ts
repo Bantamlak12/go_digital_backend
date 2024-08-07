@@ -5,7 +5,7 @@ import { Cron } from '@nestjs/schedule';
 import { Admins } from '../auth/entities/admin.entity';
 import { ResetTokens } from 'src/auth/entities/password-reset-token.entity';
 import { RecoveryTokens } from 'src/auth/entities/account-recovery-token.entity';
-import { Comments } from 'src/blogs/entities/comment.entity';
+import { Comments, CommentStatus } from 'src/blogs/entities/comment.entity';
 import { Blogs } from 'src/blogs/entities/blogs.entity';
 
 @Injectable()
@@ -148,8 +148,8 @@ export class AdminService {
     return res;
   }
 
-  // It get all blogs related to the blog post
-  async getAllBlogsComments(
+  // It get all comments related to the blog post
+  async getAllBlogComments(
     repository: Repository<Comments>,
     blogId: string,
   ): Promise<Comments[]> {
@@ -161,7 +161,40 @@ export class AdminService {
       });
       return res;
     } catch (err) {
-      console.error(err);
+      throw err;
+    }
+  }
+
+  // It get all approved comments related to the blog post
+  async getAllApprovedBlogComments(
+    repository: Repository<Comments>,
+    blogId: string,
+  ): Promise<Comments[]> {
+    try {
+      const res = await repository.find({
+        where: {
+          status: CommentStatus.APPROVED,
+          blog: { id: blogId } as any,
+        },
+      });
+      return res;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  // It get a specific comment that belong to a blog
+  async getComment(
+    repository: Repository<Comments>,
+    blogId: string,
+    commentId: string,
+  ): Promise<Comments> {
+    try {
+      const res = await repository.findOne({
+        where: [{ id: blogId }, { id: commentId }],
+      });
+      return res;
+    } catch (err) {
       throw err;
     }
   }
@@ -182,7 +215,7 @@ export class AdminService {
       await repository.update(id, body);
       return await repository.findOneBy({ id } as any);
     } catch (err) {
-      console.log(err);
+      throw err;
     }
   }
 
