@@ -220,29 +220,45 @@ export class AdminService {
   }
 
   async findByEmail<T>(repository: Repository<T>, email: string): Promise<T[]> {
-    const where: FindOptionsWhere<T> = {
-      email,
-    } as any;
-    return await repository.find({ where });
+    try {
+      const where: FindOptionsWhere<T> = {
+        email,
+      } as any;
+      return await repository.find({ where });
+    } catch (err) {
+      throw err;
+    }
   }
 
   async findById<T>(repository: Repository<T>, id: string): Promise<T> {
-    return await repository.findOneBy({ id } as any);
+    try {
+      return await repository.findOneBy({ id } as any);
+    } catch (err) {
+      throw err;
+    }
   }
 
   // Find by IDs
   async findByIds<T>(repository: Repository<T>, ids: string[]): Promise<T[]> {
-    const where: FindOptionsWhere<T> = {
-      id: In(ids),
-    } as any;
-    const result = await repository.find({ where });
+    try {
+      const where: FindOptionsWhere<T> = {
+        id: In(ids),
+      } as any;
+      const result = await repository.find({ where });
 
-    return result;
+      return result;
+    } catch (err) {
+      throw err;
+    }
   }
 
   async delete<T>(repository: Repository<T>, id: string): Promise<void> {
-    const instance = await this.findById(repository, id);
+    try {
+      const instance = await this.findById(repository, id);
 
-    await repository.remove(instance);
+      await repository.remove(instance);
+    } catch (err) {
+      throw err;
+    }
   }
 }

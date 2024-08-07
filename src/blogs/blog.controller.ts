@@ -17,7 +17,7 @@ import { CreateBlogDto } from './dtos/create-blog.dto';
 import { UpdateBlogDto } from './dtos/update-blog.dto';
 import { CreateCommentDto } from './dtos/create-comment.dto';
 import { UpdateCommentDto } from './dtos/update-comment.dto';
-import { Comments, CommentStatus } from './entities/comment.entity';
+import { Comments } from './entities/comment.entity';
 import { BlogService } from './blog.service';
 import { AdminService } from 'src/admin/admin.service';
 import { Blogs } from 'src/blogs/entities/blogs.entity';
@@ -353,15 +353,31 @@ export class BlogController {
     }
   }
 
-  @Patch('/comments/:commentId/status')
-  updateCommentStatus(
-    @Body() commentStatus: { status: CommentStatus },
-    @Param('commentId') commentId: string,
-  ) {}
-
   @Delete('/comments/:commentId')
-  deleteComment(@Param('commentId') commentId: string) {}
-
-  @Post('/:blogId/categories')
-  addCategory(@Param('id') blogId: string) {}
+  @ApiOperation({
+    summary: 'This endpoint is used to delete a comment.',
+  })
+  @ApiResponse({ status: 204 })
+  @ApiParam({
+    name: 'commentId',
+    description: 'The Id of the comment to be deleted.',
+  })
+  async deleteComment(
+    @Param('commentId') commentId: string,
+    @Response() res: ExpressResponse,
+  ) {
+    try {
+      await this.adminService.delete(this.commentRepo, commentId);
+      res.status(HttpStatus.NO_CONTENT).json({
+        status: 'success',
+        data: null,
+      });
+    } catch (err) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'error',
+        mesage: 'Failed to delete the comment for the blog.',
+        error: err.message,
+      });
+    }
+  }
 }

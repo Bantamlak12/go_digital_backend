@@ -13,7 +13,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Response as ExpressResponse } from 'express';
 import { CreateCategoryDto } from './dtos/create-category.dto';
 import { AdminService } from 'src/admin/admin.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Categories } from './entities/category.entity';
 
 @ApiTags('categories')
@@ -44,16 +44,57 @@ export class CategoriesController {
     } catch (err) {
       res.status(HttpStatus.BAD_REQUEST).json({
         status: 'error',
-        mesage: 'Failed to create category',
+        mesage: 'Failed to create the category',
         error: err.merssage,
       });
     }
   }
 
-  // @Get('/')
-  // getAllCategories() {}
-  // @Get('/:id')
-  // getCategory(@Param('id') id: string) {}
-  // @Delete('/:id')
-  // deleteCategory(@Param('id') id: string) {}
+  @Get('/')
+  @ApiOperation({ summary: 'This endpoint is used to get all categories.' })
+  @ApiResponse({ status: 200 })
+  async getAllCategories(@Response() res: ExpressResponse) {
+    try {
+      const categories = await this.adminService.getAll(this.categoryRepo);
+      res.status(HttpStatus.CREATED).json({
+        status: 'success',
+        results: categories.length,
+        data: {
+          categories,
+        },
+      });
+    } catch (err) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'error',
+        mesage: 'Failed to get all categories.',
+        error: err.merssage,
+      });
+    }
+  }
+
+  @Delete('/:id')
+  @ApiOperation({ summary: 'This endpoint is used to delete a category.' })
+  @ApiResponse({ status: 204 })
+  @ApiParam({
+    name: 'id',
+    description: 'The Id of the category to be deleted.',
+  })
+  async deleteCategory(
+    @Param('id') id: string,
+    @Response() res: ExpressResponse,
+  ) {
+    try {
+      await this.adminService.delete(this.categoryRepo, id);
+      res.status(HttpStatus.NO_CONTENT).json({
+        status: 'success',
+        data: null,
+      });
+    } catch (err) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'error',
+        mesage: 'Failed to delete the category.',
+        error: err.merssage,
+      });
+    }
+  }
 }

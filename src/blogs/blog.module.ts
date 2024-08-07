@@ -2,7 +2,6 @@ import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BlogController } from './blog.controller';
 import { BlogService } from './blog.service';
-import { CommentsController } from './comment.controller';
 import { CategoriesController } from './category.controller';
 import { AdminModule } from 'src/admin/admin.module';
 import { Blogs } from './entities/blogs.entity';
@@ -14,7 +13,7 @@ import { Comments } from './entities/comment.entity';
     forwardRef(() => AdminModule),
     TypeOrmModule.forFeature([Blogs, Categories, Comments]),
   ],
-  controllers: [BlogController, CommentsController, CategoriesController],
+  controllers: [BlogController, CategoriesController],
   providers: [BlogService],
 })
 export class BlogModule {}
