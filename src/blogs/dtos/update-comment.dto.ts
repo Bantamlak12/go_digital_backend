@@ -25,6 +25,10 @@ export class UpdateCommentDto {
   content?: string;
 
   @IsOptional()
+  @ApiProperty({
+    example: 'APPROVED',
+    description: 'The admin has access to approve the comment.',
+  })
   @IsEnum(CommentStatus)
   status?: CommentStatus;
 }
